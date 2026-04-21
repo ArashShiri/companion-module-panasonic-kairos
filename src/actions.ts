@@ -23,6 +23,7 @@ export enum ActionId {
 	muteMaster = 'muteMaster',
 	muteChannel = 'muteChannel',
 	custom = 'custom',
+	route = 'route',
 }
 
 export function getActions(instance: KairosInstance): CompanionActionDefinitions {
@@ -404,7 +405,7 @@ export function getActions(instance: KairosInstance): CompanionActionDefinitions
 			callback: (action) => {
 				const setAUX: any = {
 					patchCommand: '/aux/',
-					options: action.options.aux,
+					options: encodeURIComponent(action.options.aux as string),
 					body: { source: action.options.source },
 				}
 				// Don't wait for the value to return from the mixer, set it directly
@@ -413,6 +414,63 @@ export function getActions(instance: KairosInstance): CompanionActionDefinitions
 				instance.checkFeedbacks('aux')
 				updateBasicVariables(instance)
 				sendPatchCommand(setAUX)
+			},
+		},
+		[ActionId.route]: {
+			name: 'Route',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Destination',
+					id: 'destination',
+					default: '',
+					choices: [
+						...instance.KairosObj.AUX.map((item) => ({ id: `AUX:${item.name}`, label: `AUX: ${item.name}` })),
+						...instance.combinedLayerArray.map((item) => ({ id: `LAYER:${item.uuid}`, label: `Layer: ${item.sceneName}/${item.layerName}` })),
+					],
+				},
+				{
+					type: 'dropdown',
+					label: 'Source',
+					id: 'source',
+					default: '',
+					choices: instance.KairosObj.INPUTS.map((item) => ({ id: item.name, label: item.name })),
+				},
+			],
+			callback: (action) => {
+				const dest = action.options.destination as string
+				const source = action.options.source as string
+				if (dest.startsWith('AUX:')) {
+					const auxName = dest.substring(4)
+					const setAUX: any = {
+						patchCommand: '/aux/',
+						options: encodeURIComponent(auxName),
+						body: { source: source },
+					}
+					// Update local state
+					let index = instance.KairosObj.AUX.findIndex((x) => x.name === auxName)
+					if (index !== -1) {
+						instance.KairosObj.AUX[index].source = source
+						instance.checkFeedbacks('aux')
+						updateBasicVariables(instance)
+					}
+					sendPatchCommand(setAUX)
+				} else if (dest.startsWith('LAYER:')) {
+					const layerUuid = dest.substring(6)
+					const setSource: any = {
+						patchCommand: '/scenes',
+						options: layerUuid,
+						body: { sourceA: source },
+					}
+					// Update local state
+					let index = instance.combinedLayerArray.findIndex((x) => x.uuid === layerUuid)
+					if (index !== -1) {
+						instance.combinedLayerArray[index].sourceA = source
+						instance.checkFeedbacks('inputSource')
+						updateBasicVariables(instance)
+					}
+					sendPatchCommand(setSource)
+				}
 			},
 		},
 		//Control

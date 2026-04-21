@@ -47,6 +47,16 @@ export function updateBasicVariables(instance: KairosInstance) {
 		auxNames.push({ name: `AUX ${AUX.name} name`, variableId: `AUX.${AUX.name.replace(/ /g, '_')}` })
 	})
 
+	let sceneNames: { name: string; variableId: string }[] = []
+	instance.KairosObj.SCENES.forEach((scene) => {
+		sceneNames.push({ name: `Scene ${scene.name} name`, variableId: `SCENE.${scene.name.replace(/ /g, '_')}` })
+	})
+
+	let mvNames: { name: string; variableId: string }[] = []
+	instance.KairosObj.MULTIVIEWERS.forEach((mv) => {
+		mvNames.push({ name: `Multiviewer ${mv.name} name`, variableId: `MV.${mv.name.replace(/ /g, '_')}` })
+	})
+
 	let layerSources: { name: string; variableId: string }[] = []
 	instance.combinedLayerArray.forEach((LAYER) => {
 		layerSources.push({
@@ -76,6 +86,8 @@ export function updateBasicVariables(instance: KairosInstance) {
 		...inputSources,
 		...auxSources,
 		...auxNames,
+		...sceneNames,
+		...mvNames,
 		...audio_mute,
 		...playerRepeat,
 		//...auxAvailable,
@@ -98,6 +110,14 @@ export function updateBasicVariables(instance: KairosInstance) {
 		newVariables[`AUX.${AUX.name.replace(/ /g, '_')}.source`] = AUX.source
 		newVariables[`AUX.${AUX.name.replace(/ /g, '_')}`] = AUX.name
 		//newVariables[`${AUX.name}.available`] = AUX.available == 0 ? 'disabled' : 'enabled'
+	})
+	// SCENES
+	instance.KairosObj.SCENES.forEach((scene) => {
+		newVariables[`SCENE.${scene.name.replace(/ /g, '_')}`] = scene.name
+	})
+	// MULTIVIEWERS
+	instance.KairosObj.MULTIVIEWERS.forEach((mv) => {
+		newVariables[`MV.${mv.name.replace(/ /g, '_')}`] = mv.name
 	})
 	// PLAYERS
 	instance.KairosObj.PLAYERS.forEach((PLAYER) => {

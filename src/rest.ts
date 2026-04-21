@@ -115,6 +115,8 @@ export class REST {
 
 				// Load inputs, macros and snapshots from scenes into Kairos
 				this.instance.KairosObj.SCENES.forEach((scene: any) => {
+					if (this.instance.KairosObj.INPUTS.findIndex((x) => x.name == scene.name) == -1)
+						this.instance.KairosObj.INPUTS.push(createInputWithName(scene.name))
 					if (scene.macros) {
 						if (scene.macros.lenght != this.instance.KairosObj.SCENES_MACROS.length) {
 							scene.macros.forEach(
@@ -157,11 +159,21 @@ export class REST {
 
 				// Load inputs from aux into Kairos
 				this.instance.KairosObj.AUX.forEach((aux: any) => {
+					if (this.instance.KairosObj.INPUTS.findIndex((x) => x.name == aux.name) == -1)
+						this.instance.KairosObj.INPUTS.push(createInputWithName(aux.name))
 					if (!aux.sources) return
 					aux.sources.forEach((source: any) => {
 						if (this.instance.KairosObj.INPUTS.findIndex((x) => x.name == source) == -1)
 							this.instance.KairosObj.INPUTS.push(createInputWithName(source))
 					})
+				})
+				this.instance.KairosObj.MULTIVIEWERS.forEach((multiviewer: any) => {
+					if (this.instance.KairosObj.INPUTS.findIndex((x) => x.name == multiviewer.name) == -1)
+						this.instance.KairosObj.INPUTS.push(createInputWithName(multiviewer.name))
+				})
+				this.instance.KairosObj.MEDIA_STILLS.forEach((still: string) => {
+					if (this.instance.KairosObj.INPUTS.findIndex((x) => x.name == still) == -1)
+						this.instance.KairosObj.INPUTS.push(createInputWithName(still))
 				})
 
 				this.instance.checkFeedbacks(FeedbackId.aux)
